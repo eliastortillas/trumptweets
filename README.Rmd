@@ -2,7 +2,7 @@
 title: "Trump’s Tweets"
 author: "Elias M. Guerra"
 date: "4/19/2018"
-output: html_document
+output: github_document
 ---
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -20,9 +20,11 @@ trump$date <- as.Date(substr(trump$date.time, 1, 10), format = "%a %b %d %t")
 trump$time <- substr(trump$date.time, 12, 19)
 ```
 
+Let's take a peak at our dataset: 
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(knitr)
-kable(head(trump))
+kable(trump[1:10,])
 ```
 
 
