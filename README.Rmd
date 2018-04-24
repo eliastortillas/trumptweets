@@ -7,10 +7,10 @@ output: github_document
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(rjson)
-trump.tweets <- fromJSON(file = "~/Documents/R/math311/condensed_2017.json")
-length(trump.tweets) # 2605
-trump <- matrix(nrow = 2605, ncol = 2)
-for (i in 1:2605) {
+trump.tweets <- fromJSON(file = "~/Documents/R/math311/condensed_2018.json")
+n <- length(trump.tweets) 
+trump <- matrix(nrow = n, ncol = 2)
+for (i in 1:n) {
   trump[i,] <- c(trump.tweets[[i]]$created_at,
                  trump.tweets[[i]]$text)
 }
@@ -20,11 +20,46 @@ trump$date <- as.Date(substr(trump$date.time, 1, 10), format = "%a %b %d %t")
 trump$time <- substr(trump$date.time, 12, 19)
 ```
 
-Let's take a peak at our dataset: 
+Let's take a peak at our dataset. 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(knitr)
-kable(trump[1:10,])
+kable(trump[1:3,])
 ```
 
+We'll start by answer the question of who Trump is talking about the most. We'll look at the most frequent mentions. 
 
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# Who does Trump mention most on Twitter
+library(stringr)
+library(dplyr)
+library(ggplot2)
+mentions <- NULL
+for (i in 1:nrow(trump)) {
+  x <- str_split(trump$text[i], pattern = " ", simplify = T)
+  mentions <- c(mentions, str_subset(x, pattern = "^@"))
+}
+bad <- c("!",",", ":")
+for (i in 1:3) {
+  mentions <- str_replace(mentions, bad[i], "")
+}
+most.mentions <- 
+  mentions %>%
+  table %>%
+  data.frame %>%
+  filter(Freq >= 3) %>%
+  arrange(Freq)
+most.mentions$. <- factor(most.mentions$., levels = most.mentions$.)
+ggplot(most.mentions) + 
+  geom_bar(aes(., Freq), stat = "identity") +
+  ggtitle("Who does Trump mention most on Twitter?",
+          subtitle = expression("no. of mentions" >= 3)) +
+  coord_flip()
+
+```
+
+IDEAS: 
+1. When does Trump speak about people throughout the year?
+2. What words does he use to speak about them?
+3. Correlate with news/Google Trends.
+4. Correlate with popularity. See 538.
