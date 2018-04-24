@@ -15,7 +15,7 @@ for (i in 1:n) {
 trump <- as.data.frame(trump)
 colnames(trump) <- c("date.time", "text")
 trump$date <- as.Date(substr(trump$date.time, 1, 10), format = "%a %b %d %t")
-trump$time <- substr(trump$date.time, 12, 19)
+trump$time <- substr(trump$date.time, 12, 19) 
 ```
 
 Let's take a peak at our dataset.
@@ -63,4 +63,12 @@ ggplot(most.mentions) +
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)
 
-IDEAS: 1. When does Trump speak about people throughout the year? 2. What words does he use to speak about them? 3. Correlate with news/Google Trends. 4. Correlate with popularity. See 538.
+IDEAS:
+
+1.  When does Trump speak about people throughout the year?
+
+2.  What words does he use to speak about them?
+
+3.  Correlate with news/Google Trends.
+
+4.  Correlate with popularity. See 538.
