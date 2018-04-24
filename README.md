@@ -5,6 +5,12 @@ Elias M. Guerra
 
 ``` r
 library(rjson)
+library(readr)
+library(dplyr)
+library(stringr)
+library(ggplot2)
+library(tidytext)
+
 trump.tweets <- fromJSON(file = "~/Documents/R/math311/condensed_2018.json")
 n <- length(trump.tweets) 
 trump <- matrix(nrow = n, ncol = 2)
@@ -35,9 +41,6 @@ We'll start by answer the question of who Trump is talking about the most. We'll
 
 ``` r
 # Who does Trump mention most on Twitter
-library(stringr)
-library(dplyr)
-library(ggplot2)
 mentions <- NULL
 for (i in 1:nrow(trump)) {
   x <- str_split(trump$text[i], pattern = " ", simplify = T)
@@ -63,6 +66,36 @@ ggplot(most.mentions) +
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)
 
+``` r
+# When does trump use positive or negative language?
+trump.words <- read_csv("~/Documents/R/math311/trump_twitter_words.csv")
+trump.words$date <- as.Date(trump.words$date)
+nrc <- get_sentiments("nrc")
+trump.sentiment <- 
+  trump.words %>%
+  inner_join(nrc, by = "word")
+trump.sentiment %>%
+  group_by(sentiment) %>%
+  summarize(freq = length(date)) %>%
+  ggplot + geom_bar(aes(x = sentiment, y = freq), stat = "identity") +
+  coord_flip() + 
+  ggtitle("What emotions does Trump use?")
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)
+
+``` r
+trump.sentiment %>%
+  group_by(date, sentiment) %>%
+  summarize(freq = length(date)) %>%
+  filter(sentiment %in% c("positive", "negative", "trust", "fear", "anticipation", "anger")) %>%
+  ggplot() + 
+  geom_smooth(aes(x = date, y = freq, color = sentiment), span = .1, se = F) + 
+  ggtitle("How do the emotions of Trump's tweets change over time?")
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-2.png)
+
 IDEAS:
 
 1.  When does Trump speak about people throughout the year?
@@ -72,3 +105,7 @@ IDEAS:
 3.  Correlate with news/Google Trends.
 
 4.  Correlate with popularity. See 538.
+
+5.  Most commonly used words over time.
+
+6.  Capitalization: Which words does he put in all caps?
