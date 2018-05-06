@@ -5,95 +5,101 @@ date: "4/19/2018"
 output: github_document
 ---
 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-library(rjson)
+We'll start by loading the necessary packages, loading the data, and rearranging it. 
+
+```{r}
 library(readr)
 library(dplyr)
 library(stringr)
 library(ggplot2)
-library(tidytext)
+library(tidyr)
 
-trump.tweets <- fromJSON(file = "~/Documents/R/math311/condensed_2018.json")
-n <- length(trump.tweets) 
-trump <- matrix(nrow = n, ncol = 2)
-for (i in 1:n) {
-  trump[i,] <- c(trump.tweets[[i]]$created_at,
-                 trump.tweets[[i]]$text)
-}
-trump <- as.data.frame(trump)
-colnames(trump) <- c("date.time", "text")
-trump$date <- as.Date(substr(trump$date.time, 1, 10), format = "%a %b %d %t")
-trump$time <- substr(trump$date.time, 12, 19) 
+tt.anl <- read_csv("~/Documents/R/math311/TrumpTweets_Analysis.csv")
+tt.names.wide <- tt.anl %>%
+  group_by(month) %>%
+  summarize(Fake.News = sum(fn),
+            CNN = sum(cnn),
+            NBC = sum(nbc), 
+            NYTimes = sum(nyt),
+            Fox = sum(fox),
+            Russia = sum(russia),
+            Obama = sum(obama),
+            Obamacare = sum(ocare),
+            Hillary.Clinton = sum(hc),
+            MAGA = sum(maga))
+tt.names <- gather(tt.names.wide, key = "keyword", value = "freq", Fake.News:MAGA)
 ```
 
-Let's take a peak at our dataset. 
+For starters we are going to look at how frequently Trump mentions these keywords we've picked out. 
 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-library(knitr)
-kable(trump[1:3,])
-```
-
-We'll start by answer the question of who Trump is talking about the most. We'll look at the most frequent mentions. 
-
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-# Who does Trump mention most on Twitter
-mentions <- NULL
-for (i in 1:nrow(trump)) {
-  x <- str_split(trump$text[i], pattern = " ", simplify = T)
-  mentions <- c(mentions, str_subset(x, pattern = "^@"))
-}
-bad <- c("!",",", ":")
-for (i in 1:3) {
-  mentions <- str_replace(mentions, bad[i], "")
-}
-most.mentions <- 
-  mentions %>%
-  table %>%
-  data.frame %>%
-  filter(Freq >= 3) %>%
-  arrange(Freq)
-most.mentions$. <- factor(most.mentions$., levels = most.mentions$.)
-ggplot(most.mentions) + 
-  geom_bar(aes(., Freq), stat = "identity") +
-  ggtitle("Who does Trump mention most on Twitter?",
-          subtitle = expression("no. of mentions" >= 3)) +
-  coord_flip()
-```
-
-
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-# When does trump use positive or negative language?
-trump.words <- read_csv("~/Documents/R/math311/trump_twitter_words.csv")
-trump.words$date <- as.Date(trump.words$date)
-nrc <- get_sentiments("nrc")
-trump.sentiment <- 
-  trump.words %>%
-  inner_join(nrc, by = "word")
-trump.sentiment %>%
-  group_by(sentiment) %>%
-  summarize(freq = length(date)) %>%
-  ggplot + geom_bar(aes(x = sentiment, y = freq), stat = "identity") +
-  coord_flip() + 
-  ggtitle("What emotions does Trump use?")
-trump.sentiment %>%
-  group_by(date, sentiment) %>%
-  summarize(freq = length(date)) %>%
-  filter(sentiment %in% c("positive", "negative", "trust", "fear", "anticipation", "anger")) %>%
+```{r}
+# Line graph
+tt.names %>% # Ew...
   ggplot() + 
-  geom_smooth(aes(x = date, y = freq, color = sentiment), span = .1, se = F) + 
-  ggtitle("How do the emotions of Trump's tweets change over time?")
+  geom_line(aes(x = month, y = freq, 
+                color = keyword), size = .7, alpha = .7) +
+  theme(axis.text.x = element_text(angle=60, hjust=1))
+
 ```
 
-IDEAS: 
+This graph is not very informative...
 
-1. When does Trump speak about people throughout the year?
+```{r}
+# Heat map 
+ggplot(tt.names) + 
+  geom_tile(aes(x = month, y = keyword, fill = freq)) +
+  theme(axis.text.x = element_text(angle=60, hjust=1))
+```
 
-2. What words does he use to speak about them?
+From here we can see some patterns. Just before the election Trump was tweeting very frequenctly about Hillary Clinton. And it looks like it might coincide with his tweeting "Make America Great Again". Let's take a look at the relationship.
 
-3. Correlate with news/Google Trends.
 
-4. Correlate with popularity. See 538.
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+# Clinton and MAGA
+tt.names %>%
+  filter(keyword %in% c("Hillary.Clinton", "MAGA")) %>%
+  ggplot() + 
+  geom_line(aes(x = month, y = freq, 
+                color = keyword, 
+                group = keyword), size = .7) +
+  theme(axis.text.x = element_text(angle=60, hjust=1))
+plot(Hillary.Clinton ~ MAGA, data = tt.names.wide)
+lm.Hillary <- lm(Hillary.Clinton ~ MAGA, data = tt.names.wide)
+abline(lm.Hillary)
+summary(lm.Hillary)
+plot(lm.Hillary$residuals); abline(h = 0)
+```
 
-5. Most commonly used words over time.
+It looks like the relationship between the two is quite significant. The residuals looks decently normal. 
 
-6. Capitalization: Which words does he put in all caps?
+```{r}
+# Heat map again
+tt.names %>% filter(keyword != "Hillary.Clinton", keyword != "MAGA") %>%
+  ggplot() + 
+  geom_tile(aes(x = month, y = keyword, fill = freq)) +
+  theme(axis.text.x = element_text(angle=60, hjust=1))
+```
+
+
+Looking at this heatmap again (without Clinton and MAGA) we can see some more relationships that stand out. Tweets about fake news became very frequent after Trump was elected. And they might coincide with his mentions of Russia. Let's test this. 
+
+```{r}
+# Fake News and Russia
+tt.names %>%
+  filter(keyword %in% c("Fake.News", "Russia")) %>%
+  ggplot() + 
+  geom_line(aes(x = month, y = freq, 
+                color = keyword, 
+                group = keyword), size = .7) +
+  theme(axis.text.x = element_text(angle=60, hjust=1))
+plot(Fake.News ~ Russia, data = tt.names.wide)
+lm.Fake <- lm(Fake.News ~ Russia, data = tt.names.wide)
+abline(lm.Fake)
+summary(lm.Fake) 
+plot(lm.Fake$residuals); abline(h = 0)  
+```
+
+While the relationship does seem to be very significant the residuals are all over the place. 
+
+##### References
+1. The original data set of Trump's tweets come from http://www.trumptwitterarchive.com/about
