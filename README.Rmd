@@ -7,7 +7,7 @@ output: github_document
 
 We'll start by loading the necessary packages, loading the data, and rearranging it. 
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(readr)
 library(dplyr)
 library(stringr)
@@ -30,7 +30,7 @@ tt.names.wide <- tt.anl %>%
 tt.names <- gather(tt.names.wide, key = "keyword", value = "freq", Fake.News:MAGA)
 ```
 
-For starters we are going to look at how frequently Trump mentions these keywords we've picked out. 
+For starters we are going to look at how frequently Trump mentions these keywords we've picked out per month. 
 
 ```{r}
 # Line graph

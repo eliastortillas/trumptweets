@@ -8,54 +8,11 @@ We'll start by loading the necessary packages, loading the data, and rearranging
 ``` r
 library(readr)
 library(dplyr)
-```
-
-    ## Warning: package 'dplyr' was built under R version 3.4.2
-
-    ## 
-    ## Attaching package: 'dplyr'
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     filter, lag
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     intersect, setdiff, setequal, union
-
-``` r
 library(stringr)
 library(ggplot2)
 library(tidyr)
-```
 
-    ## Warning: package 'tidyr' was built under R version 3.4.2
-
-``` r
 tt.anl <- read_csv("~/Documents/R/math311/TrumpTweets_Analysis.csv")
-```
-
-    ## Parsed with column specification:
-    ## cols(
-    ##   date = col_date(format = ""),
-    ##   week = col_integer(),
-    ##   month = col_integer(),
-    ##   rt = col_logical(),
-    ##   text = col_character(),
-    ##   fn = col_logical(),
-    ##   cnn = col_logical(),
-    ##   nbc = col_logical(),
-    ##   nyt = col_logical(),
-    ##   fox = col_logical(),
-    ##   russia = col_logical(),
-    ##   obama = col_logical(),
-    ##   ocare = col_logical(),
-    ##   hc = col_logical(),
-    ##   maga = col_logical(),
-    ##   afinn = col_integer()
-    ## )
-
-``` r
 tt.names.wide <- tt.anl %>%
   group_by(month) %>%
   summarize(Fake.News = sum(fn),
@@ -71,7 +28,7 @@ tt.names.wide <- tt.anl %>%
 tt.names <- gather(tt.names.wide, key = "keyword", value = "freq", Fake.News:MAGA)
 ```
 
-For starters we are going to look at how frequently Trump mentions these keywords we've picked out.
+For starters we are going to look at how frequently Trump mentions these keywords we've picked out per month.
 
 ``` r
 # Line graph
