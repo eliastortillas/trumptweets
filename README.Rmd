@@ -332,7 +332,7 @@ We're going to do a chi-square test of independence comparing the postive and ne
 ##### References
 1. The original data set of Trump's tweets come from http://www.trumptwitterarchive.com/about
 
-2. Finn Årup Nielsen "A new ANEW: Evaluation of a word list for sentiment analysis in microblogs",
+2. Finn Årup Nielsen"A new ANEW: Evaluation of a word list for sentiment analysis in microblogs",
 Proceedings of the ESWC2011 Workshop on 'Making Sense of Microposts':
 Big things come in small packages 718 in CEUR Workshop Proceedings : 93-98. 2011 May. 
 http://arxiv.org/abs/1103.2903
