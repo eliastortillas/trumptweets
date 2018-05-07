@@ -102,6 +102,8 @@ tt.names <- gather(tt.names.wide, key = "keyword", value = "freq", Fake.News:MAG
 
 For starters we are going to look at how frequently Trump mentions these keywords per month.
 
+### What is Trump tweeting about?
+
 ``` r
 # Line graph
 tt.names %>% 
@@ -156,11 +158,15 @@ I want to perform a least-squares regression. 1. Test assumptions:
 
 -   Residuals are normally distributed with fixed σ
 
-1.  H\_0: B\_1(x) = 0
+1.  
 
-H\_a: B\_1(x) != 0
+-   H\_0: B\_1(x) = 0
 
-1.  g(a,b) = ∑ from i = 1 to n (y\_i(a + bx\_i))^2
+-   H\_a: B\_1(x) != 0
+
+1.  
+
+\*g(a,b) = ∑ from i = 1 to n (y\_i(a + bx\_i))^2
 
 and choose a and b to minimize the sum of squared differences.
 
@@ -202,7 +208,9 @@ plot(lm.Hillary$residuals); abline(h = 0)
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-2.png)
 
-1.  -   The residuals look decently normal
+1.  
+
+-   The residuals look decently normal
 
 -   Our results seem to ne very significant given such a low probability of seeing this relationship or one more extreme by chance (p = 4e-5).
 
@@ -229,11 +237,15 @@ Looking at this heatmap again (without Clinton and MAGA) we can see some more re
 
 -   Residuals are normally distributed with fixed σ
 
-1.  H\_0: B\_1(x) = 0
+1.  
 
-H\_a: B\_1(x) != 0
+\*H\_0: B\_1(x) = 0
 
-1.  g(a,b) = ∑ from i = 1 to n (y\_i(a + bx\_i))^2
+\*H\_a: B\_1(x) != 0
+
+1.  
+
+\*g(a,b) = ∑ from i = 1 to n (y\_i(a + bx\_i))^2
 
 and choose a and b to minimize the sum of squared differences.
 
@@ -352,12 +364,55 @@ qq
     ##      2.5%     95.7% 
     ## 0.4663826 1.3737217
 
+Wee can see that 95% of the simulated slopes are greater than 0 so there appears to be a significant relationship. But based on our residuals the relationship between tweets about Russia and fake news is not linear.
+
 1.  In conclusion:
 
 -   We will accept the alternative hypothesis: ß\_1 != 0.
 
 -   A linear regression is likely not the best fit for our model.
 
+### How does Trump feel about the news?
+
+``` r
+# Positive and negative
+tt.afinn.hl <- tt.anl %>%
+  gather(key = "name", value = "name.mention", fn:maga) %>%
+  mutate(af.b0 = afinn < 0) %>%
+  group_by(week, name, af.b0) %>%
+  filter(name.mention == T) %>%
+  summarize(af.hl = mean(afinn))
+# All news orgs
+tt.afinn.hl %>%
+  filter(name %in% c("cnn", "fox", "nbc", "nyt")) %>%
+  ggplot() +
+  geom_line(aes(x = week, y = af.hl, color = name, linetype = af.b0)) +
+  ggtitle("How does Trump feel about the news?", 
+          subtitle = "Afinn dictionary scores by Finn Årup Nielsen\nMeans are of both positive and negative afinn scores") +
+  xlab("Time (weeks)") + ylab("Mean of afinn score per week") +
+  labs(name = "", linetype = "ignore me")
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
+
+``` r
+# Aggregated news orgs
+tt.afinn.hl %>%
+  filter(name %in% c("cnn", "fox", "nbc", "nyt")) %>%
+  ggplot() +
+  geom_line(aes(x = week, y = af.hl, linetype = af.b0)) +
+  ggtitle("How does Trump feel about the news?", 
+          subtitle = "Afinn dictionary scores by Finn Årup Nielsen\nMeans are of both positive and negative afinn scores") +
+  xlab("Time (weeks)") + ylab("Mean of afinn score per week") +
+  labs(name = "", linetype = "ignore me")
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-2.png)
+
+We're going to do a chi-square test of independence comparing the postive and negative afinn scores across aggregated news organizations.
+
 ##### References
 
 1.  The original data set of Trump's tweets come from <http://www.trumptwitterarchive.com/about>
+
+2.  Finn Årup Nielsen "A new ANEW: Evaluation of a word list for sentiment analysis in microblogs", Proceedings of the ESWC2011 Workshop on 'Making Sense of Microposts': Big things come in small packages 718 in CEUR Workshop Proceedings : 93-98. 2011 May. <http://arxiv.org/abs/1103.2903>
