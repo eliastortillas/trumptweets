@@ -106,11 +106,15 @@ For starters we are going to look at how frequently Trump mentions these keyword
 
 ```{r}
 # Line graph
-tt.names %>% # Ew...
+tt.names %>% 
   ggplot() + 
   geom_line(aes(x = month, y = freq, 
                 color = keyword), size = .7, alpha = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  xlab("Time") +
+  ylab("Tweets per month") +
+  ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017")
 
 ```
 
@@ -120,7 +124,10 @@ This graph is not very informative...
 # Heat map 
 ggplot(tt.names) + 
   geom_tile(aes(x = month, y = keyword, fill = freq)) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017") +
+  xlab("Time") + labs(fill = "t/m")
 ```
 
 From here we can see some patterns. Just before the election Trump was tweeting very frequenctly about Hillary Clinton. And it looks like it might coincide with his tweeting "Make America Great Again". Let's take a look at the relationship.
@@ -133,7 +140,9 @@ tt.names %>%
   geom_line(aes(x = month, y = freq, 
                 color = keyword, 
                 group = keyword), size = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle('Tweets about Hillary Clinton and "Make America Great Again"') +
+  xlab("Time") + ylab("Frequency") + labs(color = "")
 
 ```
 
@@ -156,6 +165,7 @@ I want to perform a least-squares regression.
 
 ```{r}
 plot(Hillary.Clinton ~ MAGA, data = tt.names.wide)
+title("Correlation between tweets about H. Clinton and 'MAGA'")
 lm.Hillary <- lm(Hillary.Clinton ~ MAGA, data = tt.names.wide)
 abline(lm.Hillary)
 summary(lm.Hillary)
@@ -171,7 +181,10 @@ plot(lm.Hillary$residuals); abline(h = 0)
 tt.names %>% filter(keyword != "Hillary.Clinton", keyword != "MAGA") %>%
   ggplot() + 
   geom_tile(aes(x = month, y = keyword, fill = freq)) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+    ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017") +
+  xlab("Time") + labs(fill = "t/m")
 ```
 
 
@@ -201,7 +214,10 @@ tt.names %>%
   geom_line(aes(x = month, y = freq, 
                 color = keyword, 
                 group = keyword), size = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle('Tweets about fake news and Russia') +
+  xlab("Time") + ylab("Frequency") +
+  labs(color = "")
 plot(Fake.News ~ Russia, data = tt.names.wide)
 lm.Fake <- lm(Fake.News ~ Russia, data = tt.names.wide)
 abline(lm.Fake)
@@ -255,7 +271,8 @@ for (i in 1:1000) {
 }
 
 qq <- quantile(tts.cor, c(0.025, .957))
-hist(tts.cor, xlim = c(0,2))
+hist(tts.cor, main = NA, xlim = c(0,2))
+title("Simulated slopes")
 abline(v = qq[1], lty = 2)
 abline(v = qq[2], lty = 2)
 qq

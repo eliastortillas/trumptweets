@@ -104,11 +104,15 @@ For starters we are going to look at how frequently Trump mentions these keyword
 
 ``` r
 # Line graph
-tt.names %>% # Ew...
+tt.names %>% 
   ggplot() + 
   geom_line(aes(x = month, y = freq, 
                 color = keyword), size = .7, alpha = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  xlab("Time") +
+  ylab("Tweets per month") +
+  ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-2-1.png)
@@ -119,7 +123,10 @@ This graph is not very informative...
 # Heat map 
 ggplot(tt.names) + 
   geom_tile(aes(x = month, y = keyword, fill = freq)) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017") +
+  xlab("Time") + labs(fill = "t/m")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-3-1.png)
@@ -134,7 +141,9 @@ tt.names %>%
   geom_line(aes(x = month, y = freq, 
                 color = keyword, 
                 group = keyword), size = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle('Tweets about Hillary Clinton and "Make America Great Again"') +
+  xlab("Time") + ylab("Frequency") + labs(color = "")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-4-1.png)
@@ -157,6 +166,7 @@ and choose a and b to minimize the sum of squared differences.
 
 ``` r
 plot(Hillary.Clinton ~ MAGA, data = tt.names.wide)
+title("Correlation between tweets about H. Clinton and 'MAGA'")
 lm.Hillary <- lm(Hillary.Clinton ~ MAGA, data = tt.names.wide)
 abline(lm.Hillary)
 ```
@@ -201,7 +211,10 @@ plot(lm.Hillary$residuals); abline(h = 0)
 tt.names %>% filter(keyword != "Hillary.Clinton", keyword != "MAGA") %>%
   ggplot() + 
   geom_tile(aes(x = month, y = keyword, fill = freq)) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+    ggtitle("What is Trump tweeting about?", 
+          subtitle = "Time 0 is inauguration January 20, 2017") +
+  xlab("Time") + labs(fill = "t/m")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
@@ -232,7 +245,10 @@ tt.names %>%
   geom_line(aes(x = month, y = freq, 
                 color = keyword, 
                 group = keyword), size = .7) +
-  theme(axis.text.x = element_text(angle=60, hjust=1))
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  ggtitle('Tweets about fake news and Russia') +
+  xlab("Time") + ylab("Frequency") +
+  labs(color = "")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
@@ -321,7 +337,8 @@ for (i in 1:1000) {
 
 ``` r
 qq <- quantile(tts.cor, c(0.025, .957))
-hist(tts.cor, xlim = c(0,2))
+hist(tts.cor, main = NA, xlim = c(0,2))
+title("Simulated slopes")
 abline(v = qq[1], lty = 2)
 abline(v = qq[2], lty = 2)
 ```
