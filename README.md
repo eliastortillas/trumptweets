@@ -765,7 +765,7 @@ for (i in 1:6) {
   print(colnames(bb.s)) 
   print(rbind(X.squared = as.numeric(chi$statistic), 
               p.val = as.numeric(chi$p.value))) 
-  print(gg) 
+  if (as.numeric(chi$p.value) < .001) {print(gg) }
 }
 ```
 
@@ -787,29 +787,23 @@ for (i in 1:6) {
     ##                 [,1]
     ## X.squared 10.3499203
     ## p.val      0.1695957
-
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-3.png)
-
     ## [1] "nbc" "nyt"
     ##                   [,1]
     ## X.squared 4.517502e+01
     ## p.val     1.264676e-07
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-4.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-3.png)
 
     ## [1] "nbc" "fox"
     ##                  [,1]
     ## X.squared 16.70438566
     ## p.val      0.01940509
-
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-5.png)
-
     ## [1] "nyt" "fox"
     ##                   [,1]
     ## X.squared 3.417845e+01
     ## p.val     1.594938e-05
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-6.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-4.png)
 
 The warnings have been silenced but R would warn the Chi-squared test may be incorrect, likely because some the expected values are less than 5.
 

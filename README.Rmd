@@ -465,7 +465,7 @@ for (i in 1:6) {
   print(colnames(bb.s)) 
   print(rbind(X.squared = as.numeric(chi$statistic), 
               p.val = as.numeric(chi$p.value))) 
-  print(gg) 
+  if (as.numeric(chi$p.value) < .001) {print(gg) }
 }
 
 ```
