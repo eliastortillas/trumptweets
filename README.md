@@ -377,7 +377,7 @@ What happens when we remove don't look at posts between Hillary Clinton's Democr
 
 Hillary Clinton was nominated at the 2016 Democratic National Convention in Philadelphia on July 26, 2016, becoming the first woman to be nominated for president by a major U.S. political party (Wikipedia).
 
-###### What's the deal with fake news? What is the correlation between tweets and google searches of "fake news"?
+##### What's the deal with fake news? What is the correlation between tweets and google searches of "fake news"?
 
 ``` r
 fn <- filter(tt.month, tt.term == "tt.fn", gg.term == "gg.gn", !is.na(gg.freq)) 
@@ -765,7 +765,7 @@ for (i in 1:6) {
   print(colnames(bb.s)) 
   print(rbind(X.squared = as.numeric(chi$statistic), 
               p.val = as.numeric(chi$p.value))) 
-  if (as.numeric(chi$p.value) < .001) {print(gg) }
+  print(gg) 
 }
 ```
 
@@ -787,23 +787,29 @@ for (i in 1:6) {
     ##                 [,1]
     ## X.squared 10.3499203
     ## p.val      0.1695957
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-3.png)
+
     ## [1] "nbc" "nyt"
     ##                   [,1]
     ## X.squared 4.517502e+01
     ## p.val     1.264676e-07
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-3.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-4.png)
 
     ## [1] "nbc" "fox"
     ##                  [,1]
     ## X.squared 16.70438566
     ## p.val      0.01940509
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-5.png)
+
     ## [1] "nyt" "fox"
     ##                   [,1]
     ## X.squared 3.417845e+01
     ## p.val     1.594938e-05
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-4.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-6.png)
 
 The warnings have been silenced but R would warn the Chi-squared test may be incorrect, likely because some the expected values are less than 5.
 
@@ -829,6 +835,108 @@ chi$expected
     ## [8,]  1.773050  1.773050
 
 This is actually the case for every test so we are going to have to run them with permutations.
+
+``` r
+# This function will perform a permutation test for independence for two news agencies
+# It requires the X-squared statistic from the chi-squared test 
+# and n number of permutations
+PermForNews <- function(a, b, x.sq, n) {
+chi <- NULL
+bb.gg <- gather(bb2, "news", "af", cnn:fox)
+for (i in 1:n) {
+  bb.s <- bb.gg[bb.gg$news %in% c(a,b),]
+  bb.s$af <- sample(bb.s$af, replace = F)
+  bb.s <- spread(bb.s, news, af)[,3:4]
+  chi[i] <- chisq.test(bb.s)$statistic
+}
+chi <- chi[!is.na(chi)]
+return(chi)
+}
+```
+
+``` r
+xsq1 <- 2.530384e+01
+news.perm <- PermForNews("cnn","nbc",x.sq = xsq1, n = 1000)
+sum(news.perm<xsq1)/length(news.perm)
+```
+
+    ## [1] 0.03036876
+
+``` r
+hist(news.perm); abline(v = xsq1, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-1.png)
+
+``` r
+xsq2 <- 4.042883e+01
+news.perm <- PermForNews("cnn","nyt",x.sq = xsq2, n = 1000)
+sum(news.perm<xsq2)/length(news.perm)
+```
+
+    ## [1] 0.216
+
+``` r
+hist(news.perm); abline(v = xsq2, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-2.png)
+
+``` r
+xsq3 <- 10.3499203
+news.perm <- PermForNews("cnn","fox",x.sq = xsq3, n = 1000)
+sum(news.perm<xsq3)/length(news.perm)
+```
+
+    ## [1] 0.026
+
+``` r
+hist(news.perm); abline(v = xsq3, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-3.png)
+
+``` r
+xsq4 <- 4.517502e+01
+news.perm <- PermForNews("nbc","nyt",x.sq = xsq4, n = 1000)
+sum(news.perm<xsq4)/length(news.perm)
+```
+
+    ## [1] 0.09734513
+
+``` r
+hist(news.perm); abline(v = xsq4, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-4.png)
+
+``` r
+xsq5 <- 16.70438566
+news.perm <- PermForNews("nbc","fox",x.sq = xsq5, n = 1000)
+sum(news.perm<xsq5)/length(news.perm)
+```
+
+    ## [1] 0.004219409
+
+``` r
+hist(news.perm); abline(v = xsq5, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-5.png)
+
+``` r
+xsq6 <- 3.417845e+01
+news.perm <- PermForNews("nyt","fox",x.sq = xsq6, n = 1000)
+sum(news.perm<xsq6)/length(news.perm)
+```
+
+    ## [1] 0.142
+
+``` r
+hist(news.perm); abline(v = xsq6, lty = 2)
+```
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-6.png)
 
 ##### References
 
