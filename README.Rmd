@@ -173,7 +173,7 @@ str(tt.month)
 
 ## Introduction
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(imager)
 im  <- load.image("tweet1.jpg")
 plot(im, axes = F)
@@ -355,7 +355,7 @@ I’m going to analyze just some of the patterns in this data set.
 
 #### Hillary Clinton
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(imager)
 im  <- load.image("tweet2.png")
 plot(im, axes = F)
@@ -399,7 +399,7 @@ Based on our analyses there is a significant correlation between the frequency o
 
 ####  Fake news
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(imager)
 im  <- load.image("tweet3.png")
 plot(im, axes = F)
@@ -502,7 +502,7 @@ The permuted slopes are all greater than 0 indicating a significant relationship
 
 ####  Media
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r fig.width=10, echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(imager)
 im  <- load.image("tweet4.png")
 plot(im, axes = F)

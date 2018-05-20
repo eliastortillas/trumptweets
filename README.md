@@ -427,7 +427,7 @@ qq
 ```
 
     ##      2.5%     97.5% 
-    ## 0.2980730 0.7679122
+    ## 0.2831012 0.7517024
 
 ``` r
 qplot(x = hc.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
@@ -511,7 +511,7 @@ qq
 ```
 
     ##     2.5%    97.5% 
-    ## 1.141049 5.202413
+    ## 1.080181 5.215999
 
 ``` r
 qplot(x = fn.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
@@ -684,7 +684,7 @@ qq
 ```
 
     ##      2.5%     97.5% 
-    ## 0.5105542 0.9132439
+    ## 0.4958673 0.8960716
 
 ``` r
 qplot(x = fn.perm2[,1]) + geom_vline(aes(xintercept = qq), linetype = 2) + xlim(c(0,1.2))
@@ -968,7 +968,7 @@ news.perm <- PermForNews("cnn","nbc",x.sq = xsq1, n = 1000)
 sum(news.perm<xsq1)/length(news.perm)
 ```
 
-    ## [1] 0.02262931
+    ## [1] 0.02994652
 
 ``` r
 ## CNN and NYTimes
@@ -977,7 +977,7 @@ news.perm <- PermForNews("cnn","nyt",x.sq = xsq2, n = 1000)
 sum(news.perm<xsq2)/length(news.perm)
 ```
 
-    ## [1] 0.233
+    ## [1] 0.187
 
 ``` r
 ## CNN and Fox
@@ -986,7 +986,7 @@ news.perm <- PermForNews("cnn","fox",x.sq = xsq3, n = 1000)
 sum(news.perm<xsq3)/length(news.perm)
 ```
 
-    ## [1] 0.02
+    ## [1] 0.015
 
 ``` r
 ## NBC and NYTimes
@@ -995,7 +995,7 @@ news.perm <- PermForNews("nbc","nyt",x.sq = xsq4, n = 1000)
 sum(news.perm<xsq4)/length(news.perm)
 ```
 
-    ## [1] 0.07974684
+    ## [1] 0.07787392
 
 ``` r
 ## NBC and Fox
@@ -1004,7 +1004,7 @@ news.perm <- PermForNews("nbc","fox",x.sq = xsq5, n = 1000)
 sum(news.perm<xsq5)/length(news.perm)
 ```
 
-    ## [1] 0.003205128
+    ## [1] 0.002157497
 
 ``` r
 ## NYTimes and Fox
@@ -1013,7 +1013,7 @@ news.perm <- PermForNews("nyt","fox",x.sq = xsq6, n = 1000)
 sum(news.perm<xsq6)/length(news.perm)
 ```
 
-    ## [1] 0.126
+    ## [1] 0.139
 
 A number of networks have significantly different distribution. The networks with p-values less than 0.1 are,
 
