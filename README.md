@@ -209,7 +209,7 @@ We've got a lot going on in this dataset,
 
 Throughout this report we will be using a number of statistical tests. For each one we will define the statistic, the assumptions, the hypotheses, and later the conclusion from the results.
 
-The first test is a least-square regression. For the following equation a and b values are chosen to minimize the sum squared distances between the points and the best fit line.
+The first test is a least-squares regression. For the following equation a and b values are chosen to minimize the sum squared distances between the points and the best fit line.
 
 ![g(a,b) = \\sum\_{i=1}^n (y\_i - (a+bx\_i))^2](https://latex.codecogs.com/png.latex?g%28a%2Cb%29%20%3D%20%5Csum_%7Bi%3D1%7D%5En%20%28y_i%20-%20%28a%2Bbx_i%29%29%5E2 "g(a,b) = \sum_{i=1}^n (y_i - (a+bx_i))^2")
 
@@ -274,7 +274,7 @@ Data
 
 For starters we are just going to visualize this data set to get an idea of what's going on here.
 
-1.  How often does Trump tweet about these key terms? We're going to measure the frequency in tweets per month. The key terms are inspired by <http://www.trumptwitterarchive.com/>.
+How often does Trump tweet about these key terms? We're going to measure the frequency in tweets per month. The key terms are inspired by <http://www.trumptwitterarchive.com/>.
 
 ``` r
 # Heat map
@@ -289,7 +289,7 @@ ggplot(tt.month) +
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
 
-1.  When do people Google issues related to the 2016 election? Frequency is out of 100 with 101 being the most frequent for the included time period. From Google Trends.
+When do people Google issues related to the 2016 election? Frequency is out of 100 with 100 being the most frequent for the included time period. From Google Trends.
 
 ``` r
 ggplot(tt.month) +
@@ -303,7 +303,7 @@ ggplot(tt.month) +
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
 
-1.  What emotions is Trump using in his tweets? Based on Afinn dictionary definitions.
+What emotions is Trump using in his tweets? Based on Afinn dictionary definitions.
 
 ``` r
 tt.anl %>%
@@ -318,10 +318,9 @@ tt.anl %>%
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png)
 
-1.  How does Trump's approval change over time?
+How does Trump's approval change over time?
 
 ``` r
-library(ggthemes)
 tt.anl %>%
   mutate(day = DateToDays(date, ref = "2017-01-20")) %>% 
   filter(!is.na(ap)) %>%
@@ -331,14 +330,14 @@ tt.anl %>%
   geom_hline(aes(yintercept = 50), size = .2) +
   ylim(c(30, 70)) +
   theme_fivethirtyeight() + 
-  ylab("% Approval (green) / % Disapproval (orange)") + xlab("Time (days)") +
+  #ylab("% Approval (green) / % Disapproval (orange)") + xlab("Time (days)") +
   ggtitle("How do Americans feel about Trump?", 
            subtitle = "Green: % approval, Orange: % disapproval \nTime: days since inauguration, January 20, 2017")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-9-1.png)
 
-1.  How often does Trump tweet?
+How often does Trump tweet?
 
 ``` r
 tt.anl %>%
@@ -347,7 +346,8 @@ tt.anl %>%
   ggplot() +
   geom_bar(aes(x = week, weight = freq)) + 
   ggtitle("When is Trump tweeting?", 
-          subtitle = "Time 0 is inauguration, January 20, 2017") 
+          subtitle = "Time 0 is inauguration, January 20, 2017") +
+  ylab("Tweets per week") + xlab("Time (weeks)")
 ```
 
 ![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
@@ -355,46 +355,32 @@ tt.anl %>%
 Analyses and Conclusions
 ------------------------
 
-Use this for a multiple regression to check if increased frequency of terms is not just from increased frequency of tweets
+Are people's Google searches related to Donald Trump's tweets? I am not trying to establish causation, simply an association. From the graphs above some patterns jump out:
 
-### Are people's Google searches related to Donald Trump's tweets?
+-   Trump tweets very differently about different topics. For example, he tweets a lot about Hillary clinton leading up to the election, two months before is inauguration. After his inauguration he begins to tweet about fake news.
 
-For starters, I am not trying to establish causation, simply an associaion.
+-   Google searches of “fake news” and “trump russia” begin around election time. Searches of “clinton emails” increase up to that point then stop.
 
-From here we can see some patterns. Just before the election Trump was tweeting very frequenctly about Hillary Clinton. And it looks like it might coincide with his tweeting "Make America Great Again". Let's take a look at the relationship.
+-   Immediately after Trump’s inauguration he was more negative than normal. He returned to Twitter very positively then went back to normal.
 
-##### Tweets and Googles of Hillary Clinton
+-   Trump’s disapproval ratings increased sharply after taking office. He is about as \[popular\] (<https://projects.fivethirtyeight.com/trump-approval-ratings/?ex_cid=rrpromo>) as Gerald Ford.
 
-I want to perform a least-squares regression.
+-   Trump tweeted less and less as the election closed in. He disappeared from Twitter for a spell after his inauguration and has since returned quite vigorously.
 
-1.  Test assumptions:
+I’m going to analyze just some of the patterns in this data set.
 
--   Relationship between x and y is linear
+#### Hillary Clinton
 
--   Observations are independent (Not necessarily true)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
 
--   Residuals are normally distributed with fixed σ
-
-1.  
-
-![H\_0: B\_1 x = 0](https://latex.codecogs.com/png.latex?H_0%3A%20B_1%20x%20%3D%200 "H_0: B_1 x = 0")
-
-![H\_a: B\_1(x) \\neq 0](https://latex.codecogs.com/png.latex?H_a%3A%20B_1%28x%29%20%5Cneq%200 "H_a: B_1(x) \neq 0")
-
-1.  
-
-![g(a,b) = \\sum\_{i=1}^{n} y\_i(a + bx\_i))^2](https://latex.codecogs.com/png.latex?g%28a%2Cb%29%20%3D%20%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%20y_i%28a%20%2B%20bx_i%29%29%5E2 "g(a,b) = \sum_{i=1}^{n} y_i(a + bx_i))^2")
-
- Verify this ^
-
-and choose a and b to minimize the sum of squared differences.
+For starters I want to examine the relationship between Trump’s tweets about Hillary Clinton and Google searches of Hillary Clinton. I’ll use a least-squares regression, as defined in the methods. This is what the data and the best fit line look like.
 
 ``` r
 hc <- filter(tt.month, tt.term == "tt.hc", gg.term == "gg.hc", !is.na(gg.freq))
-qplot(data = hc, x = tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black")
+qplot(data = hc, x = tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black") + xlab("Tweets per month") + ylab("Google searches per month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-1.png)
 
 ``` r
 lm.hc <- lm(gg.freq ~ tt.freq, data = hc)
@@ -424,7 +410,7 @@ summary(lm.hc)
 qplot(x = lm.hc$fitted.values, y = lm.hc$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-2.png) Based on the r2 value the correlation explains about 20% of the variation in the data. The first two assumptions of the least-squares regression test hold true. The third does not based on the residuals above. We are going to use the permutation test for independence of two variables. We’ll run the test with 1000 repeats to determine if the slope is greater than 0 (our null hypothesis).
 
 ``` r
 n <- 1000
@@ -437,35 +423,46 @@ for (i in 1:n) {
   hc.perm[i,] <- rev(ss.lm$coefficients)
 }
 qq <- quantile(hc.perm$ss, c(.025, .975))
+qq
+```
+
+    ##      2.5%     97.5% 
+    ## 0.2980730 0.7679122
+
+``` r
 qplot(x = hc.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-1.png)
 
 ``` r
 ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) +
   geom_point() +
   geom_abline(data = hc.perm, aes(slope = ss, intercept = ii), alpha = .02) +
   ggtitle('') +
-  xlab("Tweets per month") + ylab("Google frequency") + labs(color = "Month")
+  xlab("Tweets per month") + ylab("Google frequency") + labs(color = "Month") +
+  ggtitle("Relationship between tweets and Google searches of Hillary Clinton",
+    subtitle = "Lines are 1000 simulated regression lines")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-2.png) It looks like the slope is greater than 0. We have above a histogram with all the permuted slopes and the 95% confidence intervals. Below that is data with all the simulated regression lines.
 
-What happens when we remove don't look at posts between Hillary Clinton's Democratic nomination and the election. And if we do a multiple regression that also takes into account the amount of times that Trump tweets.
+Based on our analyses there is a significant correlation between the frequency of tweets about and Google searches of Hillary Clinton.
 
-Hillary Clinton was nominated at the 2016 Democratic National Convention in Philadelphia on July 26, 2016, becoming the first woman to be nominated for president by a major U.S. political party (Wikipedia).
+#### Fake news
 
-##### What's the deal with fake news? What is the correlation between tweets and google searches of "fake news"?
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-1.png)
+
+Second question, is there an association between Google searches of and tweets about fake news?
 
 ``` r
 fn <- filter(tt.month, tt.term == "tt.fn", gg.term == "gg.gn", !is.na(gg.freq))
-qplot(data = fn, x= tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black")
+qplot(data = fn, x= tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black") + xlab("Tweets per month") + ylab("Google searches per month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-1.png)
 
 ``` r
 lm.fn <- lm(gg.freq ~ tt.freq, data = fn)
@@ -495,7 +492,9 @@ summary(lm.fn)
 qplot(x = lm.fn$fitted.values, y= lm.fn$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-2.png)
+
+The r2 indicates again that the correlation explains about 20% of the variation in the data. Again, the third assumption is not met. Based on the residuals plot above the residuals are not normally distributed and the standard deviation is definitely not fixed. We’ll use the permutation test with 1000 repeats.
 
 ``` r
 n <- 1000
@@ -508,12 +507,19 @@ for (i in 1:n) {
   fn.perm[i,] <- rev(ss.lm$coefficients)
 }
 qq <- quantile(fn.perm$ss, c(.025, .975))
+qq
+```
+
+    ##     2.5%    97.5% 
+    ## 1.141049 5.202413
+
+``` r
 qplot(x = fn.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
 ```
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-1.png)
 
 ``` r
 ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
@@ -523,9 +529,13 @@ ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
   xlab("Tweets per month") + ylab("Google frequency") + labs(color = "Month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-2.png)
 
-##### Why are people Googling Fake News
+The 95% confidence intervals of the simulated slopes indicate that there is a significant relationship between Google searches of and tweets about fake news.
+
+I have a follow-up question which is why are people googling fake news? We’ll see what variable from our data set best predicts the frequency of searches of fake news. To do this we’ll use a multiple regression, which will evaluate multiple predictor variables. We will see which predictors are significant as predictors and which are not.
+
+The assumptions of the multiple linear regression are similar to the single linear regression we used before. One additional assumption is that there is no multicollinearity between the independent variables. We will momentarily violate this when we use both Google search terms and tweets as predictors because we have established that frequency of searches and tweets can be correlated. We will run the regression a second time with terms that should not be correlated (Google searches of “clinton emails” was thrown out because it could be correlated with searches of “hillary clinton”).
 
 ``` r
 why.fn <-
@@ -613,21 +623,19 @@ summary(fn.lm2)
 qplot(y = gg.fn, x = gg.hc, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-1.png)
 
 ``` r
 qplot(y = gg.fn, x = gg.dt, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-2.png)
 
 ``` r
 qplot(y = gg.fn, x = gg.rr, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-3.png)
-
-And this is why graphs... It's immediately obvious that Google searches of Hillary Clinton and Donald Trump are totally independent of searches of "fake news". Searches of Russia and "fake news" are actually pretty closely associated. This might be because...
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-3.png) And this is why graphs. The relationship between searches of Russia and fake news looks like the only one that we should use. The relationship between those two variables makes a lot of sense.
 
 ``` r
 fn.lm3 <- lm(data = why.fn, gg.fn ~ gg.rr)
@@ -657,7 +665,9 @@ summary(fn.lm3)
 qplot(x = fn.lm3$fitted.values, y = fn.lm3$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-1.png)
+
+At this point we are back to a single least-squares regression. The r2 indicates that about 40% of the variation in the data is explained by this correlation. The residuals do not appear to have a fixed standard deviation. We’ll run the permutation test with 1000 repeats.
 
 ``` r
 n <- 1000
@@ -670,21 +680,34 @@ for (i in 1:n) {
   fn.perm2[i,] <- rev(ss.lm$coefficients)
 }
 qq <- quantile(fn.perm2$ss, c(.025, .975))
+qq
+```
+
+    ##      2.5%     97.5% 
+    ## 0.5105542 0.9132439
+
+``` r
 qplot(x = fn.perm2[,1]) + geom_vline(aes(xintercept = qq), linetype = 2) + xlim(c(0,1.2))
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-1.png)
 
 ``` r
 qplot(data = why.fn, x = gg.rr, y= gg.fn) +
   geom_abline(data = fn.perm2, aes(slope = ss, intercept = ii), alpha = .02)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-2.png)
 
-How do we evaluate when we actually need a permutation test for a linear model?
+The permuted slopes are all greater than 0 indicating a significant relationship between searches of Russia and fake news.
 
-##### Do Trump's tweets about Fox News differ significantly from other media sources based on sentiment score?
+#### Media
+
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-1.png)
+
+The last question I want to ask is how does Trump feel about different media outlets?
+
+We are going to have to rearrange the data to do these comparisons. We’ll use the Afinn sentiment scores and count the frequency of different ratings. We’ll bin the scores by 2 (so the number of tweets with scores between 0 and 2, 2 and 4, etc.).
 
 ``` r
 ## Insert Afinn scores for tweets when news channel was mentioned else NA
@@ -792,9 +815,11 @@ bb %>%
   scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-21-1.png)
 
-Clearly Trump is tweeting the most about Fox News. To account for the fact that he tweets about certain news organizations more than others we'll convert the frequency of tweets to the proportion of tweets that fall into ranges of Afinn scores.
+Clearly Trump is tweeting the most about Fox News. To account for the fact that he tweets about certain news organizations more than others we'll convert the frequency of tweets to the fraction out of 100.
+
+The bins with very low frequencies were thrown out. They interfered with the chi-square test and they don’t really tell us anything about the distributions because we are not interested in outliers.
 
 ``` r
 bb2 <- bb
@@ -826,9 +851,11 @@ bb2 %>%
   scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-22-1.png)
 
-We can immediately see that as proportions that
+It looks like Trump tweets a lot more negatively about the New York Times than other news organizations. He tweets positively about Fox News and even more so about NBC. (\[really?\] (<https://twitter.com/realDonaldTrump/status/981117684489379840>). This could be from tweets made before he was elected perhaps. Further investigation required.)
+
+We are going to compare all combinations of pairs of news organizations to see if which ones have different distributions of Afinn sentiment scores.
 
 ``` r
 cc <- cbind(c(3,3,3,4,4,5),c(4,5,6,5,6,6))
@@ -856,44 +883,42 @@ for (i in 1:6) {
     ## X.squared 2.530384e+01
     ## p.val     6.701905e-04
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-1.png)
 
     ## [1] "cnn" "nyt"
     ##                   [,1]
     ## X.squared 4.042883e+01
     ## p.val     1.041897e-06
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-2.png)
 
     ## [1] "cnn" "fox"
     ##                 [,1]
     ## X.squared 10.3499203
     ## p.val      0.1695957
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-3.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-3.png)
 
     ## [1] "nbc" "nyt"
     ##                   [,1]
     ## X.squared 4.517502e+01
     ## p.val     1.264676e-07
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-4.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-4.png)
 
     ## [1] "nbc" "fox"
     ##                  [,1]
     ## X.squared 16.70438566
     ## p.val      0.01940509
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-5.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-5.png)
 
     ## [1] "nyt" "fox"
     ##                   [,1]
     ## X.squared 3.417845e+01
     ## p.val     1.594938e-05
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-6.png)
-
-The warnings have been silenced but R would warn the Chi-squared test may be incorrect, likely because some the expected values are less than 5.
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-6.png) The warnings have been silenced but R warns that all the Chi-squared tests may be incorrect, likely because many of the expected values are less than 5.
 
 ``` r
 chi <- chisq.test(bb2[,c(5,6)])
@@ -916,7 +941,7 @@ chi$expected
     ## [7,]  4.858156  4.858156
     ## [8,]  1.773050  1.773050
 
-This is actually the case for every test so we are going to have to run them with permutations.
+We are going to have to run these tests with permutations for 1000 repeats.
 
 ``` r
 # This function will perform a permutation test for independence for two news agencies
@@ -943,7 +968,7 @@ news.perm <- PermForNews("cnn","nbc",x.sq = xsq1, n = 1000)
 sum(news.perm<xsq1)/length(news.perm)
 ```
 
-    ## [1] 0.03308431
+    ## [1] 0.02262931
 
 ``` r
 ## CNN and NYTimes
@@ -952,7 +977,7 @@ news.perm <- PermForNews("cnn","nyt",x.sq = xsq2, n = 1000)
 sum(news.perm<xsq2)/length(news.perm)
 ```
 
-    ## [1] 0.218
+    ## [1] 0.233
 
 ``` r
 ## CNN and Fox
@@ -961,7 +986,7 @@ news.perm <- PermForNews("cnn","fox",x.sq = xsq3, n = 1000)
 sum(news.perm<xsq3)/length(news.perm)
 ```
 
-    ## [1] 0.017
+    ## [1] 0.02
 
 ``` r
 ## NBC and NYTimes
@@ -970,7 +995,7 @@ news.perm <- PermForNews("nbc","nyt",x.sq = xsq4, n = 1000)
 sum(news.perm<xsq4)/length(news.perm)
 ```
 
-    ## [1] 0.06733167
+    ## [1] 0.07974684
 
 ``` r
 ## NBC and Fox
@@ -979,7 +1004,7 @@ news.perm <- PermForNews("nbc","fox",x.sq = xsq5, n = 1000)
 sum(news.perm<xsq5)/length(news.perm)
 ```
 
-    ## [1] 0.003289474
+    ## [1] 0.003205128
 
 ``` r
 ## NYTimes and Fox
@@ -988,11 +1013,25 @@ news.perm <- PermForNews("nyt","fox",x.sq = xsq6, n = 1000)
 sum(news.perm<xsq6)/length(news.perm)
 ```
 
-    ## [1] 0.128
+    ## [1] 0.126
+
+A number of networks have significantly different distribution. The networks with p-values less than 0.1 are,
+
+-   CNN and NBC
+
+-   CNN and Fox
+
+-   NBC and the New York Times
+
+-   NBC and Fox
+
+The difference between NBC and Fox was the most significant. There is a 0.3% chance that we would see a difference this extreme by chance. If you look at the graph above comparing the two you can see that the two organizations are tweeted about negatively similarly. The big difference is that many more tweets about Fox News are positive.
+
+The dictionary is not perfect by and it would definitely be useful to define some parameters to be more precise when comparing sentiment scores.
 
 ##### References
 
-1.  The original data set of Trump's tweets come from <http://www.trumptwitterarchive.com/>
+1.  The original data set of Trump's tweets come from <http://www.trumptwitterarchive.com/> created by Brendan Brown.
 
 2.  Finn Årup Nielsen"A new ANEW: Evaluation of a word list for sentiment analysis in microblogs", Proceedings of the ESWC2011 Workshop on 'Making Sense of Microposts': Big things come in small packages 718 in CEUR Workshop Proceedings : 93-98. 2011 May. <http://arxiv.org/abs/1103.2903>
 
