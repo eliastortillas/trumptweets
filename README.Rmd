@@ -1,24 +1,27 @@
 ---
-title: "Trump’s Tweets"
-author: "Elias M. Guerra"
-date: "4/19/2018"
-output: github_document
+title: "What is @realDonaldTrump tweeting?"
+date: "May 2018"
+output:  
+  github_document:
+    pandoc_args: --webtex
 ---
 
-We'll start by loading the necessary packages, loading the data, and rearranging it. 
+We'll start by loading the necessary packages, loading the data, and rearranging it. I also have two functions to make cleaning the data easier. 
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(readr)
+library(plyr)
 library(dplyr)
 library(stringr)
 library(ggplot2)
 library(tidyr)
 library(knitr)
 library(tidytext)
+library(ggthemes)
 
 DateToDays <- function(date = Sys.Date(), ref = "1995-01-15") {
-## This function will convert dates into days
-## Default setttings will count days since my birthday
+# This function will convert dates into days from a reference date
+# Default setttings will count days since my birthday
   # date = vector of dates
   # ref = reference date from which days will be counted
   date <- as.Date(as.character(date))
@@ -31,12 +34,15 @@ DateToDays <- function(date = Sys.Date(), ref = "1995-01-15") {
 }
 
 EveryDate <- function(dates, origin = "1970-01-01") {
-## This function will create every date in between
+# This function will fill in all missing in-between dates in a vector of dates
   # date = vector of incomplete dates
   dd <- as.numeric(range(dates))
   every.date <- as.Date(seq(dd[1], dd[2]), origin = origin)
+  return(every.date)
 }
 ```
+
+This is the data that I downloaded from http://www.trumptwitterarchive.com/. I downloaded the data from June 16, 2015 to May 5, 2018. The starting date is when Donald Trump officially announced he was running for President. 
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=T, paged.print=FALSE}
 # Begin by cleaning the data
@@ -53,17 +59,18 @@ tt.final <- tt %>%
   filter(twitter != F) %>%
   select(date, rt, text)
 # Step 3. Save
-## write_csv(tt.final, "~/Documents/R/math311/TrumpTweets16-18.csv")
+# write_csv(tt.final, "~/Documents/R/math311/TrumpTweets16-18.csv")
 ```
 
-
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=T, paged.print=FALSE}
-## From TrumpTweets16-18 create TrumpTweets.Analysis
+# From TrumpTweets16-18 create TrumpTweets.Analysis
 tt <- read_csv("~/Documents/R/math311/TrumpTweets16-18.csv")
 str(tt)
 tt$day <- DateToDays(tt$date, ref = "2017-01-20")
+# Trump was inaugurated on January 20, 2017
 tt$week <- tt$day %/% 7
 tt$month <- tt$day %/% 30
+# Months are not totally accurate because they are not all 30 days
 
 # Emotional score for the words used
 af <- get_sentiments("afinn")
@@ -100,7 +107,7 @@ tt.anl %>%
             dis = mean(dis)
             )
 
-## References to certain keywords: "fake news", "fox news", "Clinton", etc. 
+# References to certain keywords: "fake news", "fox news", "Clinton", etc.
 tt.anl$fn <-
   str_detect(tt.anl$text, regex("fake news", ignore_case = T)) |
   str_detect(tt.anl$text, regex("fakenews", ignore_case = T)) |
@@ -134,104 +141,209 @@ gg$date <- gg.hc$Week
 gg$day <- DateToDays(gg$date, ref = "2017-01-20")
 gg$week <- gg$day %/% 7 
 gg <- select(gg, week, gg.hc:gg.rr)
-tt.anl <- left_join(tt.anl, gg, "week")
+tt.anl <- left_join(tt.anl, gg, "week") 
 
-## write_csv(tt.anl, "~/Documents/R/math311/TrumpTweets_Analysis.csv") 
+# write_csv(tt.anl, "~/Documents/R/math311/TrumpTweets_Analysis.csv")
 ```
 
-We've got a lot going on in this dataset: time (by date, week, month), the tweet itself, keywords (eg. "fake news", "Russia") from the tweets (logical), popular search terms (from Google Trends), approval ratings (from FiveThirtyEight aggregated polls), and emotional score (from AFINN dictionary). 
-
-```{r}
-tt.anl <- read_csv("~/Documents/R/math311/TrumpTweets_Analysis.csv")
-```
-
-The frequency of tweet keywords and Google search terms is not quite in the format we want it, so we'll need to rearrage it:
+This last chunk will summarize the data set just created by month. It will be very useful throughout. 
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+tt.anl  <- read_csv("~/Documents/R/math311/TrumpTweets_Analysis.csv")
 tt.month <- tt.anl %>%
   group_by(month) %>%
-  summarize(tt.fn = sum(fn),
+  dplyr::summarize(tt.Total = length(month),
+            tt.fn = sum(fn),
             tt.cnn = sum(cnn),
-            tt.nbc = sum(nbc), 
+            tt.nbc = sum(nbc),
             tt.nyt = sum(nyt),
             tt.fox = sum(fox),
             tt.rr = sum(russia),
             tt.hc = sum(hc),
             tt.maga = sum(maga),
-            tt.Total = length(month),
             gg.hc = max(gg.hc),
             gg.dt = max(gg.dt),
             gg.ce = max(gg.ce),
             gg.gn = max(gg.fn),
-            gg.rr = max(gg.rr)) 
+            gg.rr = max(gg.rr))
 tt.month <- gather(tt.month, key = "tt.term", value = "tt.freq", tt.fn:tt.maga)
 tt.month <- gather(tt.month, key = "gg.term", value = "gg.freq", gg.hc:gg.rr)
-kable(tt.month[1:20,])
+str(tt.month)
 ```
 
-For starters we are just going to visualize this data set to get an idea of what's going on here. 
+## Introduction
 
-1. How often does Trump tweet about these key terms? We're going to measure the frequency in tweets per month. The key terms are inspired by http://www.trumptwitterarchive.com/. 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(imager)
+im  <- load.image("31tweet-sub1-videoSixteenByNineJumbo1600.jpg")
+plot(im, axes = F)
+```
+
+Donald Trump became the 45th President of the United States on November 8, 2016 when he won the 2016 US presidential election. The official electoral votes were 304 to 227, but Clinton won the popular vote by 2.1%. Trump was inaugurated on January 20, 2017.
+
+Trump's success took the world by surprise as a realtor turned reality TV star became the leader of the world's superpower. He campaigned on a populist message the appealed to many working-class, particularly older, white Americans, resentful after eight years of Barack Obama and the Democratic party. Since taking office Trump's presidency has been continually marked by provocative comments on both the national and international stage. Among other hallmarks of this presidency is his frequent use of the social media site Twitter. With over 50 million followers he instantly shares any thought, often to chagrin of his administration that must explain and apologize for his often outrageous and contradictory tweets.
+
+Brendan Brown created http://www.trumptwitterarchive.com/, where he collects every tweet on Donald Trump's Twitter account. I decided to analyze some of the President's tweets.
+
+## Methods
+
+*Data set*
+
+We've got a lot going on in this dataset,
+
+1) The timestamp, to which we've added days before and after inauguration
+
+2) The tweet itself
+
+3) The presence of certain key words and names: "fake news," CNN, NBC, NYTimes, Fox, Russia, Hillary Clinton, "Make America Great Again"
+
+3) The popularity of certain keywords from Google Trends during the relevant time period: Hillary Clinton, Donald Trump, "clinton email," "fake news," Russia
+
+4) Trump's approval ratings from FiveThirtyEight's aggregated ratings starting since his inauguration
+
+5) Sentiment scores from the Afinn dictionary: This linguistic dictionary has a integer value between -5 and 5 assigned to 2477 words and terms based on how negative or positive they are. Any words in a tweet that matched the dictionary were scored and summed to create a score for each tweet. Using the sum instead of the mean (which would provide the average sentiment of all relevant words) means that the number of positive or negative words is taken into account.
+
+*Hypothesis testing and statistics*
+
+Throughout this report we will be using a number of statistical tests. For each one we will define the statistic, the assumptions, the hypotheses, and later the conclusion from the results.
+
+The first test is a least-square regression. For the following equation a and b values are chosen to minimize the sum squared distances between the points and the best fit line.
+
+$$g(a,b) = \sum_{i=1}^n (y_i - (a+bx_i))^2$$
+
+The test assumes that,
+
+1) The relationship between x and y is linear
+
+2) All x observations are independent
+
+3) The residuals are normally distributed with a fixed standard deviation, σ.
+
+The hypotheses for this test are that for the function
+$$y = \beta_0 + \beta_1x$$
+
+$$H_0: \beta_1 = 0$$
+$$H_1: \beta_1 \neq 0$$
+
+If the last assumption does not hold true we will use the permutation test for independence of two variables. We will use this test to tell if the correlation is significant by permuting the correlation many times. From a given sample of size n from a population with two variables,
+
+1) Draw a permutation resample of size n without replacement from one of the variables; keep the other variable in its original order.
+
+2) Compute a statistic that measures the relationship, such as the correlation or slope.
+
+3) Repeat this resampling process.
+
+4) Calculate the p-value as the fraction of permuted statistics more extreme than the observed statistic.
+
+The other test we will use is the chi-square test of homogeneity. The function below is used to calculate if there is a difference between two populations.
+
+$$C = \sum_\text{all cells} \frac{(\text{observed - expected})^2} {\text{expected}}$$
+
+This test assumes that,
+
+1) The variables being compared are categorical
+
+2) The data were collected using randomization
+
+3) All expected cell counts are greater than equal to 5. If this does not hold true we can use the permutation test of independence.
+
+The hypothesis for this test is that for the respective values from each population there is no difference.
+
+$$H_0: \pi_\text{B1} = \pi_\text{G1}, \pi_\text{B2} = \pi_\text{G2}, ...$$
+$$H_A: \text{at least one one of the inequalities does not hold}$$
+
+If the last assumption does not hold true we will use the two-sample permutation test. For each sample b and g,
+
+1) Pool the b and g values
+
+2) Resample b and g with the original samples sizes
+
+3) Calculate the chi-square statistic.
+
+4) Repeat steps 1 - 3 many times.
+
+5) Calculate the p-value as the fraction of times the random statistics exceed the original statistic.
+
+## Data
+
+For starters we are just going to visualize this data set to get an idea of what's going on here.
+
+1) How often does Trump tweet about these key terms? We're going to measure the frequency in tweets per month. The key terms are inspired by http://www.trumptwitterarchive.com/.
+
 
 ```{r}
-# Heat map 
+# Heat map
 ggplot(tt.month) +
   geom_tile(aes(x = month, y = tt.term, fill = tt.freq)) +
   theme(axis.text.x = element_text(angle=60, hjust=1)) +
-  scale_y_discrete(labels = c("CNN", "Fake News", "Fox News", "Hillary Clinton", "MAGA", "NBC", "NYTimes", "Russia")) + 
-  ggtitle("What is Trump tweeting about?", 
-          subtitle = "Time 0 is inauguration: January 20, 2017") +
-  xlab("Time (months)") + labs(fill = "t/m") +  ylab(NULL)
+  scale_y_discrete(labels = c("CNN", "Fake News", "Fox News", "Hillary Clinton", "MAGA", "NBC", "NYTimes", "Russia")) +
+  ggtitle("What is Trump tweeting about?",
+          subtitle = "Time 0 is inauguration, January 20, 2017") +
+  xlab("Time (months)") + labs(fill = "t/m") +  ylab(NULL) 
 ```
 
-2. When are people Googling some terms related to the 2016 election? These are pulled from Google Trends. 
+2) When do people Google issues related to the 2016 election? Frequency is out of 100 with 101 being the most frequent for the included time period. From Google Trends. 
 
 ```{r}
-ggplot(tt.month) + 
+ggplot(tt.month) +
   geom_tile(aes(x = month, y = gg.term, fill = gg.freq)) +
   theme(axis.text.x = element_text(angle=60, hjust=1)) +
-  scale_y_discrete(labels = c("clinton emails", "donald trump", "fake news", "hillary clinton", "trump russia")) + ylab(NULL) + 
-  ggtitle("What are people Googling?", 
-          subtitle = "Time 0 is inauguration: January 20, 2017") +
-  xlab("Time (months)") + labs(fill = "Frequency") + ylab(NULL)
+  scale_y_discrete(labels = c("clinton emails", "donald trump", "fake news", "hillary clinton", "trump russia")) + ylab(NULL) +
+  ggtitle("What are people Googling?",
+          subtitle = "Time 0 is inauguration, January 20, 2017") +
+  xlab("Time (months)") + labs(fill = "Frequency") + ylab(NULL) 
 ```
 
-3. What emotions is Trump using in his tweets?
+3) What emotions is Trump using in his tweets? Based on Afinn dictionary definitions. 
 
 ```{r}
 tt.anl %>%
-  mutate(day = DateToDays(date, ref = "2017-01-20")) %>%
-  ggplot() + geom_bar(aes(x = day, weight = afinn))
+  mutate(day = DateToDays(date, ref = "2017-01-20")) %>% 
+  group_by(day) %>%
+  dplyr::summarize(afinn = sum(afinn)) %>% 
+  ggplot() + geom_bar(aes(x = day, weight = afinn)) +
+  ylab("Daily Afinn score") + xlab("Time (days)") +
+  ggtitle("How does Trump feel on Twitter?",
+          subtitle = "Time 0 is inauguration, January 20, 2017") 
 ```
-4. How does Trumps approval change over time?
+
+4) How does Trump's approval change over time?
 
 ```{r}
 library(ggthemes)
 tt.anl %>%
+  mutate(day = DateToDays(date, ref = "2017-01-20")) %>% 
   filter(!is.na(ap)) %>%
   ggplot() +
-  geom_line(aes(x = week, y = ap), color = "green") + 
-  geom_line(aes(x = week, y= dis), color = "orange") +
+  geom_line(aes(x = day, y = ap), color = "green") +
+  geom_line(aes(x = day, y= dis), color = "orange") +
   geom_hline(aes(yintercept = 50), size = .2) +
-  ylim(c(30, 70)) + 
-  theme_fivethirtyeight()
+  ylim(c(30, 70)) +
+  theme_fivethirtyeight() + 
+  ylab("% Approval (green) / % Disapproval (orange)") + xlab("Time (days)") +
+  ggtitle("How do Americans feel about Trump?", 
+           subtitle = "Green: % approval, Orange: % disapproval \nTime: days since inauguration, January 20, 2017")
 ```
 
-5. How often does Trump tweet?
+5) How often does Trump tweet?
 
 ```{r}
 tt.anl %>%
   group_by(week) %>%
   summarize(freq = length(week), afinn = mean(afinn)) %>%
   ggplot() +
-  geom_bar(aes(x = week, weight = freq))
+  geom_bar(aes(x = week, weight = freq)) + 
+  ggtitle("When is Trump tweeting?", 
+          subtitle = "Time 0 is inauguration, January 20, 2017") 
 ```
+
+## Analyses and Conclusions
 
 Use this for a multiple regression to check if increased frequency of terms is not just from increased frequency of tweets
 
 ### Are people's Google searches related to Donald Trump's tweets?
 
-For starters, I am not trying to establish causation, simply an associaion. 
+For starters, I am not trying to establish causation, simply an associaion.
 
 From here we can see some patterns. Just before the election Trump was tweeting very frequenctly about Hillary Clinton. And it looks like it might coincide with his tweeting "Make America Great Again". Let's take a look at the relationship.
 
@@ -282,7 +394,7 @@ for (i in 1:n) {
 }
 qq <- quantile(hc.perm$ss, c(.025, .975))
 qplot(x = hc.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
-ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) + 
+ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) +
   geom_point() +
   geom_abline(data = hc.perm, aes(slope = ss, intercept = ii), alpha = .02) +
   ggtitle('') +
@@ -297,7 +409,7 @@ Hillary Clinton was nominated at the 2016 Democratic National Convention in Phil
 ##### What's the deal with fake news? What is the correlation between tweets and google searches of "fake news"?
 
 ```{r}
-fn <- filter(tt.month, tt.term == "tt.fn", gg.term == "gg.gn", !is.na(gg.freq)) 
+fn <- filter(tt.month, tt.term == "tt.fn", gg.term == "gg.gn", !is.na(gg.freq))
 qplot(data = fn, x= tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black")
 lm.fn <- lm(gg.freq ~ tt.freq, data = fn)
 summary(lm.fn)
@@ -316,7 +428,7 @@ for (i in 1:n) {
 }
 qq <- quantile(fn.perm$ss, c(.025, .975))
 qplot(x = fn.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
-ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) + 
+ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
   geom_point() +
   geom_abline(data = fn.perm, aes(slope = ss, intercept = ii), alpha = .02) +
   ggtitle('') +
@@ -326,7 +438,7 @@ ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
 ##### Why are people Googling Fake News
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
-why.fn <- 
+why.fn <-
 tt.anl %>%
   filter(!is.na(gg.fn)) %>%
   select(week, fn:gg.rr) %>%
@@ -334,8 +446,8 @@ tt.anl %>%
   summarize(tt.fn = sum(fn),
             tt.cnn = sum(cnn),
             tt.nbc = sum(nbc),
-            tt.nyt = sum(nyt), 
-            tt.fox = sum(fox), 
+            tt.nyt = sum(nyt),
+            tt.fox = sum(fox),
             tt.russia = sum(russia),
             tt.hc = sum(hc),
             tt.maga = sum(maga),
@@ -373,17 +485,17 @@ for (i in 1:n) {
 }
 qq <- quantile(fn.perm2$ss, c(.025, .975))
 qplot(x = fn.perm2[,1]) + geom_vline(aes(xintercept = qq), linetype = 2) + xlim(c(0,1.2))
-qplot(data = why.fn, x = gg.rr, y= gg.fn) + 
-  geom_abline(data = fn.perm2, aes(slope = ss, intercept = ii), alpha = .02) 
+qplot(data = why.fn, x = gg.rr, y= gg.fn) +
+  geom_abline(data = fn.perm2, aes(slope = ss, intercept = ii), alpha = .02)
 ```
 
 How do we evaluate when we actually need a permutation test for a linear model?
 
-##### Do Trump's tweets about Fox News differ significantly from other media sources based on sentiment score? 
+##### Do Trump's tweets about Fox News differ significantly from other media sources based on sentiment score?
 
 ```{r}
 ## Insert Afinn scores for tweets when news channel was mentioned else NA
-tt.news <- select(tt.anl, cnn, nbc, nyt, fox, afinn, month, week) 
+tt.news <- select(tt.anl, cnn, nbc, nyt, fox, afinn, month, week)
 tt.news$cnn[tt.news$cnn == T] <- tt.news$afinn[tt.news$cnn == T]
 tt.news$cnn[tt.news$cnn == F] <- NA
 tt.news$nbc[tt.news$nbc == T] <- tt.news$afinn[tt.news$nbc == T]
@@ -410,25 +522,26 @@ for (i in 1:N) {
   fox.af[i] <- sum(tt.news$fox > bb$min[i] & tt.news$fox < bb$max[i], na.rm = T)
 }
 # Combine and plot
-bb <- cbind(bb, cnn.af, nbc.af, nyt.af, fox.af) 
+bb <- cbind(bb, cnn.af, nbc.af, nyt.af, fox.af)
 colnames(bb) <- c("min", "max", "cnn", "nbc", "nyt", "fox")
-bb <- bb %>% select(min, max, cnn, nbc, nyt, fox) 
+bb <- bb %>% select(min, max, cnn, nbc, nyt, fox)
 filter(bb, min >= -15, min <= 15)
-bb <- filter(bb, min >= -6, min <= 8) 
-# We do not want two news orgs with 0 tweets in a bin 
+bb <- filter(bb, min >= -6, min <= 8)
+# We do not want two news orgs with 0 tweets in a bin
 # This will screw up the chi-square test later
 # And we don't care about outliers anyway
-bb 
+bb
 bb %>%
-  gather(key = "news", value = "value", cnn:fox) %>% 
+  gather(key = "news", value = "value", cnn:fox) %>%
   ggplot() +
-  geom_bar(aes(x = as.factor(min), weight = value, fill = news), position = "dodge") + 
+  geom_bar(aes(x = as.factor(min), weight = value, fill = news), position = "dodge") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   labs(fill = NULL) + xlab("Afinn scores") + ylab("Total tweets") +
-  scale_fill_discrete(labels = c("CNN", "Fox", "NBC", "NYTimes"))
+  scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
+  
 ```
 
-Clearly Trump is tweeting the most about Fox News. To account for the fact that he tweets about certain news organizations more than others we'll convert the frequency of tweets to the proportion of tweets that fall into ranges of Afinn scores. 
+Clearly Trump is tweeting the most about Fox News. To account for the fact that he tweets about certain news organizations more than others we'll convert the frequency of tweets to the proportion of tweets that fall into ranges of Afinn scores.
 
 ```{r}
 bb2 <- bb
@@ -439,15 +552,15 @@ bb2$fox <- bb2$fox/sum(bb2$fox) * 100
 ## Calculate as proportion of tweets
 bb2
 bb2 %>%
-  gather(key = "news", value = "value", cnn:fox) %>% 
+  gather(key = "news", value = "value", cnn:fox) %>%
   ggplot() +
-  geom_bar(aes(x = as.factor(min), weight = value, fill = news), position = "dodge") + 
+  geom_bar(aes(x = as.factor(min), weight = value, fill = news), position = "dodge") +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   labs(fill = NULL) + xlab("Afinn scores") + ylab("% of tweets") +
-  scale_fill_discrete(labels = c("CNN", "Fox", "NBC", "NYTimes"))
+  scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
 ```
 
-We can immediately see that as proportions that 
+We can immediately see that as proportions that
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cc <- cbind(c(3,3,3,4,4,5),c(4,5,6,5,6,6))
@@ -455,32 +568,33 @@ for (i in 1:6) {
   ii <- cc[i,]
   bb.s <- as.matrix(bb2[,c(ii)])
   bb.s
-  gg <- bb.s %>% 
-    data.frame %>% 
+  gg <- bb.s %>%
+    data.frame %>%
     mutate(afinn = bb2$min) %>%
-    gather(key = "news", value = "value", colnames(.)[1:2]) %>% 
-    ggplot() + geom_bar(aes(x= afinn, weight = value, fill = news), position = "dodge")
+    gather(key = "news", value = "value", colnames(.)[1:2]) %>%
+    ggplot() + geom_bar(aes(x= afinn, weight = value, fill = news), position = "dodge") + 
+    scale_fill_ptol()
   rownames(bb.s) <- bb2$min
   chi <- chisq.test(bb.s)
-  print(colnames(bb.s)) 
-  print(rbind(X.squared = as.numeric(chi$statistic), 
-              p.val = as.numeric(chi$p.value))) 
-  print(gg) 
+  print(colnames(bb.s))
+  print(rbind(X.squared = as.numeric(chi$statistic),
+              p.val = as.numeric(chi$p.value)))
+  print(gg)
 }
 
 ```
 
-The warnings have been silenced but R would warn the Chi-squared test may be incorrect, likely because some the expected values are less than 5. 
+The warnings have been silenced but R would warn the Chi-squared test may be incorrect, likely because some the expected values are less than 5.
 
 ```{r}
 chi <- chisq.test(bb2[,c(5,6)])
 chi$expected
 ```
-This is actually the case for every test so we are going to have to run them with permutations. 
+This is actually the case for every test so we are going to have to run them with permutations.
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 # This function will perform a permutation test for independence for two news agencies
-# It requires the X-squared statistic from the chi-squared test 
+# It requires the X-squared statistic from the chi-squared test
 # and n number of permutations
 PermForNews <- function(a, b, x.sq, n) {
 chi <- NULL
@@ -497,35 +611,35 @@ return(chi)
 ```
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+## CNN and NBC
 xsq1 <- 2.530384e+01
 news.perm <- PermForNews("cnn","nbc",x.sq = xsq1, n = 1000)
 sum(news.perm<xsq1)/length(news.perm)
-hist(news.perm); abline(v = xsq1, lty = 2)
 
+## CNN and NYTimes
 xsq2 <- 4.042883e+01
 news.perm <- PermForNews("cnn","nyt",x.sq = xsq2, n = 1000)
 sum(news.perm<xsq2)/length(news.perm)
-hist(news.perm); abline(v = xsq2, lty = 2)
 
+## CNN and Fox
 xsq3 <- 10.3499203
 news.perm <- PermForNews("cnn","fox",x.sq = xsq3, n = 1000)
 sum(news.perm<xsq3)/length(news.perm)
-hist(news.perm); abline(v = xsq3, lty = 2)
 
+## NBC and NYTimes
 xsq4 <- 4.517502e+01
 news.perm <- PermForNews("nbc","nyt",x.sq = xsq4, n = 1000)
 sum(news.perm<xsq4)/length(news.perm)
-hist(news.perm); abline(v = xsq4, lty = 2)
 
+## NBC and Fox
 xsq5 <- 16.70438566
 news.perm <- PermForNews("nbc","fox",x.sq = xsq5, n = 1000)
 sum(news.perm<xsq5)/length(news.perm)
-hist(news.perm); abline(v = xsq5, lty = 2)
 
+## NYTimes and Fox
 xsq6 <- 3.417845e+01
 news.perm <- PermForNews("nyt","fox",x.sq = xsq6, n = 1000)
 sum(news.perm<xsq6)/length(news.perm)
-hist(news.perm); abline(v = xsq6, lty = 2)
 ```
 
 
@@ -536,3 +650,5 @@ hist(news.perm); abline(v = xsq6, lty = 2)
 Proceedings of the ESWC2011 Workshop on 'Making Sense of Microposts':
 Big things come in small packages 718 in CEUR Workshop Proceedings : 93-98. 2011 May.
 http://arxiv.org/abs/1103.2903
+
+3. *Yihui* left a really helpful comment for Latex support in RMarkdown on Github:  https://github.com/rstudio/rmarkdown/issues/1187
