@@ -2,6 +2,10 @@ What is @realDonaldTrump tweeting?
 ================
 May 2018
 
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-1-1.png)
+
+Graph last updated June 2018.
+
 We'll start by loading the necessary packages, loading the data, and rearranging it. I also have two functions to make cleaning the data easier.
 
 ``` r
@@ -115,8 +119,7 @@ tt.anl$nyt <- str_detect(tt.anl$text, regex("nytimes", ignore_case = T)) |
 tt.anl$fox <- str_detect(tt.anl$text, regex("@fox", ignore_case = T)) |
   str_detect(tt.anl$text, regex("@seanhannity", ignore_case = T)) |
   str_detect(tt.anl$text, regex("@tuckercarlson", ignore_case = T))
-tt.anl$russia <- str_detect(tt.anl$text, regex("russia", ignore_case = T)) |
-  str_detect(tt.anl$text, regex("putin", ignore_case = T))
+tt.anl$russia <- str_detect(tt.anl$text, regex("russia", ignore_case = T)) | str_detect(tt.anl$text, regex("putin", ignore_case = T))
 tt.anl$hc <- str_detect(tt.anl$text, regex("hillary", ignore_case = T)) |
   str_detect(tt.anl$text, regex("clinton", ignore_case = T))
 tt.anl$maga <- str_detect(tt.anl$text, regex("maga", ignore_case = T)) |
@@ -178,7 +181,7 @@ str(tt.month)
 Introduction
 ------------
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-5-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
 
 Donald Trump became the 45th President of the United States on November 8, 2016 when he won the 2016 US presidential election. The official electoral votes were 304 to 227, but Clinton won the popular vote by 2.1%. Trump was inaugurated on January 20, 2017.
 
@@ -287,7 +290,7 @@ ggplot(tt.month) +
   xlab("Time (months)") + labs(fill = "t/m") +  ylab(NULL) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-6-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
 
 When do people Google issues related to the 2016 election? Frequency is out of 100 with 100 being the most frequent for the included time period. From Google Trends.
 
@@ -301,7 +304,7 @@ ggplot(tt.month) +
   xlab("Time (months)") + labs(fill = "Frequency") + ylab(NULL) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-7-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png)
 
 What emotions is Trump using in his tweets? Based on Afinn dictionary definitions.
 
@@ -316,7 +319,7 @@ tt.anl %>%
           subtitle = "Time 0 is inauguration, January 20, 2017") 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-8-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-9-1.png)
 
 How does Trump's approval change over time?
 
@@ -335,7 +338,7 @@ tt.anl %>%
            subtitle = "Green: % approval, Orange: % disapproval \nTime: days since inauguration, January 20, 2017")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-9-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
 
 How often does Trump tweet?
 
@@ -350,7 +353,7 @@ tt.anl %>%
   ylab("Tweets per week") + xlab("Time (weeks)")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-10-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
 
 Analyses and Conclusions
 ------------------------
@@ -371,7 +374,7 @@ I’m going to analyze just some of the patterns in this data set.
 
 #### Hillary Clinton
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-1.png)
 
 For starters I want to examine the relationship between Trump’s tweets about Hillary Clinton and Google searches of Hillary Clinton. I’ll use a least-squares regression, as defined in the methods. This is what the data and the best fit line look like.
 
@@ -380,7 +383,7 @@ hc <- filter(tt.month, tt.term == "tt.hc", gg.term == "gg.hc", !is.na(gg.freq))
 qplot(data = hc, x = tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black") + xlab("Tweets per month") + ylab("Google searches per month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-1.png)
 
 ``` r
 lm.hc <- lm(gg.freq ~ tt.freq, data = hc)
@@ -410,7 +413,9 @@ summary(lm.hc)
 qplot(x = lm.hc$fitted.values, y = lm.hc$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-12-2.png) Based on the r2 value the correlation explains about 20% of the variation in the data. The first two assumptions of the least-squares regression test hold true. The third does not based on the residuals above. We are going to use the permutation test for independence of two variables. We’ll run the test with 1000 repeats to determine if the slope is greater than 0 (our null hypothesis).
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-2.png)
+
+Based on the r2 value the correlation explains about 20% of the variation in the data. The first two assumptions of the least-squares regression test hold true. The third does not based on the residuals above. We are going to use the permutation test for independence of two variables. We’ll run the test with 1000 repeats to determine if the slope is greater than 0 (our null hypothesis).
 
 ``` r
 n <- 1000
@@ -427,7 +432,7 @@ qq
 ```
 
     ##      2.5%     97.5% 
-    ## 0.2831012 0.7517024
+    ## 0.3002937 0.7778973
 
 ``` r
 qplot(x = hc.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
@@ -435,7 +440,7 @@ qplot(x = hc.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-1.png)
 
 ``` r
 ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) +
@@ -447,13 +452,15 @@ ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) +
     subtitle = "Lines are 1000 simulated regression lines")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-13-2.png) It looks like the slope is greater than 0. We have above a histogram with all the permuted slopes and the 95% confidence intervals. Below that is data with all the simulated regression lines.
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-2.png)
+
+It looks like the slope is greater than 0. We have above a histogram with all the permuted slopes and the 95% confidence intervals. Below that is data with all the simulated regression lines.
 
 Based on our analyses there is a significant correlation between the frequency of tweets about and Google searches of Hillary Clinton.
 
 #### Fake news
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-14-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-1.png)
 
 Second question, is there an association between Google searches of and tweets about fake news?
 
@@ -462,7 +469,7 @@ fn <- filter(tt.month, tt.term == "tt.fn", gg.term == "gg.gn", !is.na(gg.freq))
 qplot(data = fn, x= tt.freq, y = gg.freq) + geom_smooth(method = "lm", se = F, color = "black") + xlab("Tweets per month") + ylab("Google searches per month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-1.png)
 
 ``` r
 lm.fn <- lm(gg.freq ~ tt.freq, data = fn)
@@ -492,7 +499,7 @@ summary(lm.fn)
 qplot(x = lm.fn$fitted.values, y= lm.fn$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-15-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-2.png)
 
 The r2 indicates again that the correlation explains about 20% of the variation in the data. Again, the third assumption is not met. Based on the residuals plot above the residuals are not normally distributed and the standard deviation is definitely not fixed. We’ll use the permutation test with 1000 repeats.
 
@@ -511,7 +518,7 @@ qq
 ```
 
     ##     2.5%    97.5% 
-    ## 1.080181 5.215999
+    ## 1.065883 5.376051
 
 ``` r
 qplot(x = fn.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
@@ -519,7 +526,7 @@ qplot(x = fn.perm[,1]) + geom_vline(aes(xintercept = qq), linetype = 2)
 
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-1.png)
 
 ``` r
 ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
@@ -529,7 +536,7 @@ ggplot(fn, aes(x = tt.freq, y= gg.freq, color = month)) +
   xlab("Tweets per month") + ylab("Google frequency") + labs(color = "Month")
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-16-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-2.png)
 
 The 95% confidence intervals of the simulated slopes indicate that there is a significant relationship between Google searches of and tweets about fake news.
 
@@ -623,19 +630,21 @@ summary(fn.lm2)
 qplot(y = gg.fn, x = gg.hc, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-1.png)
 
 ``` r
 qplot(y = gg.fn, x = gg.dt, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-2.png)
 
 ``` r
 qplot(y = gg.fn, x = gg.rr, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-17-3.png) And this is why graphs. The relationship between searches of Russia and fake news looks like the only one that we should use. The relationship between those two variables makes a lot of sense.
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-3.png)
+
+And this is why graphs. The relationship between searches of Russia and fake news looks like the only one that we should use. The relationship between those two variables makes a lot of sense.
 
 ``` r
 fn.lm3 <- lm(data = why.fn, gg.fn ~ gg.rr)
@@ -665,7 +674,7 @@ summary(fn.lm3)
 qplot(x = fn.lm3$fitted.values, y = fn.lm3$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-1.png)
 
 At this point we are back to a single least-squares regression. The r2 indicates that about 40% of the variation in the data is explained by this correlation. The residuals do not appear to have a fixed standard deviation. We’ll run the permutation test with 1000 repeats.
 
@@ -684,26 +693,26 @@ qq
 ```
 
     ##      2.5%     97.5% 
-    ## 0.4958673 0.8960716
+    ## 0.5136706 0.9281243
 
 ``` r
 qplot(x = fn.perm2[,1]) + geom_vline(aes(xintercept = qq), linetype = 2) + xlim(c(0,1.2))
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-1.png)
 
 ``` r
 qplot(data = why.fn, x = gg.rr, y= gg.fn) +
   geom_abline(data = fn.perm2, aes(slope = ss, intercept = ii), alpha = .02)
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-19-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-2.png)
 
 The permuted slopes are all greater than 0 indicating a significant relationship between searches of Russia and fake news.
 
 #### Media
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-20-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-21-1.png)
 
 The last question I want to ask is how does Trump feel about different media outlets?
 
@@ -815,7 +824,7 @@ bb %>%
   scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-21-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-22-1.png)
 
 Clearly Trump is tweeting the most about Fox News. To account for the fact that he tweets about certain news organizations more than others we'll convert the frequency of tweets to the fraction out of 100.
 
@@ -851,7 +860,7 @@ bb2 %>%
   scale_fill_ptol(labels = c("CNN", "Fox", "NBC", "NYTimes")) 
 ```
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-22-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-1.png)
 
 It looks like Trump tweets a lot more negatively about the New York Times than other news organizations. He tweets positively about Fox News and even more so about NBC. (\[really?\] (<https://twitter.com/realDonaldTrump/status/981117684489379840>). This could be from tweets made before he was elected perhaps. Further investigation required.)
 
@@ -883,42 +892,44 @@ for (i in 1:6) {
     ## X.squared 2.530384e+01
     ## p.val     6.701905e-04
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-1.png)
 
     ## [1] "cnn" "nyt"
     ##                   [,1]
     ## X.squared 4.042883e+01
     ## p.val     1.041897e-06
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-2.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-2.png)
 
     ## [1] "cnn" "fox"
     ##                 [,1]
     ## X.squared 10.3499203
     ## p.val      0.1695957
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-3.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-3.png)
 
     ## [1] "nbc" "nyt"
     ##                   [,1]
     ## X.squared 4.517502e+01
     ## p.val     1.264676e-07
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-4.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-4.png)
 
     ## [1] "nbc" "fox"
     ##                  [,1]
     ## X.squared 16.70438566
     ## p.val      0.01940509
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-5.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-5.png)
 
     ## [1] "nyt" "fox"
     ##                   [,1]
     ## X.squared 3.417845e+01
     ## p.val     1.594938e-05
 
-![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-23-6.png) The warnings have been silenced but R warns that all the Chi-squared tests may be incorrect, likely because many of the expected values are less than 5.
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-24-6.png)
+
+The warnings have been silenced but R warns that all the Chi-squared tests may be incorrect, likely because many of the expected values are less than 5.
 
 ``` r
 chi <- chisq.test(bb2[,c(5,6)])
@@ -968,7 +979,7 @@ news.perm <- PermForNews("cnn","nbc",x.sq = xsq1, n = 1000)
 sum(news.perm<xsq1)/length(news.perm)
 ```
 
-    ## [1] 0.02994652
+    ## [1] 0.03229279
 
 ``` r
 ## CNN and NYTimes
@@ -977,7 +988,7 @@ news.perm <- PermForNews("cnn","nyt",x.sq = xsq2, n = 1000)
 sum(news.perm<xsq2)/length(news.perm)
 ```
 
-    ## [1] 0.187
+    ## [1] 0.188
 
 ``` r
 ## CNN and Fox
@@ -986,7 +997,7 @@ news.perm <- PermForNews("cnn","fox",x.sq = xsq3, n = 1000)
 sum(news.perm<xsq3)/length(news.perm)
 ```
 
-    ## [1] 0.015
+    ## [1] 0.018
 
 ``` r
 ## NBC and NYTimes
@@ -995,7 +1006,7 @@ news.perm <- PermForNews("nbc","nyt",x.sq = xsq4, n = 1000)
 sum(news.perm<xsq4)/length(news.perm)
 ```
 
-    ## [1] 0.07787392
+    ## [1] 0.08695652
 
 ``` r
 ## NBC and Fox
@@ -1004,7 +1015,7 @@ news.perm <- PermForNews("nbc","fox",x.sq = xsq5, n = 1000)
 sum(news.perm<xsq5)/length(news.perm)
 ```
 
-    ## [1] 0.002157497
+    ## [1] 0.004352557
 
 ``` r
 ## NYTimes and Fox
@@ -1013,7 +1024,7 @@ news.perm <- PermForNews("nyt","fox",x.sq = xsq6, n = 1000)
 sum(news.perm<xsq6)/length(news.perm)
 ```
 
-    ## [1] 0.139
+    ## [1] 0.124
 
 A number of networks have significantly different distribution. The networks with p-values less than 0.1 are,
 

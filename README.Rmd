@@ -6,9 +6,98 @@ output:
     pandoc_args: --webtex
 ---
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+library(plyr)
+library(dplyr)
+library(tidyverse)
+library(stringr)
+library(knitr)
+library(tidytext)
+library(ggthemes)
+library(viridis)
+
+DateToDays <- function(date = Sys.Date(), ref = "1995-01-15") {
+  date <- as.Date(as.character(date))
+  date.df <- data.frame(Date = date, Numeric = as.numeric(date))
+  date.df <- filter(date.df, !is.na(Numeric))
+  ref.num <- as.numeric(as.Date(ref))
+  date.df$day <- date.df$Numeric - ref.num
+  Days <- date.df$day
+  return(Days)
+}
+
+tt <- read_csv("~/Documents/R/math311/TRUMPTWITTER-updateJune2018.csv")
+tt$twitter <- str_detect(tt$source, "Twitter")
+tt$date <- substr(tt$created_at, 1, 10) %>% as.Date(format = "%m-%d-%Y")
+tt <- filter(tt, !is.na(date))
+tt$rt <- as.logical(tt$is_retweet)
+tt <- tt %>%
+  filter(twitter != F) %>%
+  select(date, rt, text)
+tt$day <- DateToDays(tt$date, ref = "2017-01-20")
+tt$week <- tt$day %/% 7
+tt$month <- tt$day %/% 30
+
+# References to certain keywords: "fake news", "fox news", "Clinton", etc.
+tt$fn <-
+  str_detect(tt$text, regex("fake news", ignore_case = T)) |
+  str_detect(tt$text, regex("fakenews", ignore_case = T)) |
+  str_detect(tt$text, regex("fake media", ignore_case = T))
+tt$cnn <- str_detect(tt$text, regex("cnn", ignore_case = T))
+tt$nbc <- str_detect(tt$text, regex("nbc", ignore_case = T))
+tt$nyt <- str_detect(tt$text, regex("nytimes", ignore_case = T)) |
+  str_detect(tt$text, regex("new york times", ignore_case = T))
+tt$fox <- str_detect(tt$text, regex("@fox", ignore_case = T)) |
+  str_detect(tt$text, regex("@seanhannity", ignore_case = T)) |
+  str_detect(tt$text, regex("@tuckercarlson", ignore_case = T))
+tt$russia <- str_detect(tt$text, regex("russia", ignore_case = T)) | str_detect(tt$text, regex("putin", ignore_case = T))
+tt$hc <- str_detect(tt$text, regex("hillary", ignore_case = T)) |
+  str_detect(tt$text, regex("clinton", ignore_case = T))
+tt$maga <- str_detect(tt$text, regex("maga", ignore_case = T)) |
+  str_detect(tt$text, regex("make america", ignore_case = T))
+tt$obama <- str_detect(tt$text, regex("obama", ignore_case = T))
+tt$ocare <- str_detect(tt$text, regex("obamacare", ignore_case = T))
+tt$nfl <- str_detect(tt$text, regex(" nfl", ignore_case = T))
+tt$china <- str_detect(tt$text, regex("china", ignore_case = T))
+
+tt.month <- tt %>%
+  group_by(month) %>%
+  dplyr::summarize(
+            tt.Total = length(month),
+            fn = sum(fn),
+            cnn = sum(cnn),
+            nbc = sum(nbc),
+            nyt = sum(nyt),
+            fox = sum(fox),
+            rr = sum(russia),
+            hc = sum(hc),
+            maga = sum(maga),
+            obama = sum(obama),
+            ocare = sum(ocare),
+            nfl = sum(nfl),
+            china = sum(china)
+            )
+tt.month <- gather(tt.month, key = "tt.term", value = "tt.freq", fn:china)
+
+ggplot(tt.month) +
+  geom_tile(aes(x = as.factor(month), y = tt.term, fill = tt.freq)) +
+  theme(axis.text.x = element_text(angle=60, hjust=1)) +
+  scale_y_discrete(labels = c("China", "CNN", "Fake News", "Fox News", "Hillary Clinton", "MAGA", "NBC", "NFL", "NYTimes", "Obama", "Obamacare", "Russia")) +
+  ggtitle("What is Trump tweeting about?",
+          subtitle = "Time 0 is inauguration: January 20, 2017") +
+  theme_fivethirtyeight() +
+  xlab("Months") + labs(fill = "tweets per month") +  ylab(NULL) +
+  theme(legend.position = "bottom") + 
+  scale_fill_viridis(option = "cividis", direction = -1) +
+  scale_x_discrete(breaks = c(-20,-10,0,10), labels = c("-20", "-10", "0", "10")) +
+  theme(axis.title = element_text()) + ylab(NULL) 
+```
+
+Graph last updated June 2018.
+
 We'll start by loading the necessary packages, loading the data, and rearranging it. I also have two functions to make cleaning the data easier. 
 
-```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r eval=F, message=FALSE, warning=FALSE, paged.print=FALSE}
 library(readr)
 library(plyr)
 library(dplyr)
@@ -119,8 +208,7 @@ tt.anl$nyt <- str_detect(tt.anl$text, regex("nytimes", ignore_case = T)) |
 tt.anl$fox <- str_detect(tt.anl$text, regex("@fox", ignore_case = T)) |
   str_detect(tt.anl$text, regex("@seanhannity", ignore_case = T)) |
   str_detect(tt.anl$text, regex("@tuckercarlson", ignore_case = T))
-tt.anl$russia <- str_detect(tt.anl$text, regex("russia", ignore_case = T)) |
-  str_detect(tt.anl$text, regex("putin", ignore_case = T))
+tt.anl$russia <- str_detect(tt.anl$text, regex("russia", ignore_case = T)) | str_detect(tt.anl$text, regex("putin", ignore_case = T))
 tt.anl$hc <- str_detect(tt.anl$text, regex("hillary", ignore_case = T)) |
   str_detect(tt.anl$text, regex("clinton", ignore_case = T))
 tt.anl$maga <- str_detect(tt.anl$text, regex("maga", ignore_case = T)) |
@@ -370,6 +458,7 @@ lm.hc <- lm(gg.freq ~ tt.freq, data = hc)
 summary(lm.hc)
 qplot(x = lm.hc$fitted.values, y = lm.hc$residuals) + geom_hline(aes(yintercept = 0), linetype = 2)
 ```
+
 Based on the r2 value the correlation explains about 20% of the variation in the data. The first two assumptions of the least-squares regression test hold true. The third does not based on the residuals above. We are going to use the permutation test for independence of two variables. We’ll run the test with 1000 repeats to determine if the slope is greater than 0 (our null hypothesis). 
 
 ```{r}
@@ -393,6 +482,7 @@ ggplot(hc, aes(x = tt.freq, y= gg.freq, color = month)) +
   ggtitle("Relationship between tweets and Google searches of Hillary Clinton",
 	subtitle = "Lines are 1000 simulated regression lines")
 ```
+
 It looks like the slope is greater than 0. We have above a histogram with all the permuted slopes and the 95% confidence intervals. Below that is data with all the simulated regression lines. 
 
 Based on our analyses there is a significant correlation between the frequency of tweets about and Google searches of Hillary Clinton. 
@@ -471,6 +561,7 @@ qplot(y = gg.fn, x = gg.hc, data = why.fn) + geom_smooth(method = "lm", se = F)
 qplot(y = gg.fn, x = gg.dt, data = why.fn) + geom_smooth(method = "lm", se = F)
 qplot(y = gg.fn, x = gg.rr, data = why.fn) + geom_smooth(method = "lm", se = F)
 ```
+
 And this is why graphs. The relationship between searches of Russia and fake news looks like the only one that we should use. The relationship between those two variables makes a lot of sense. 
 
 ```{r}
@@ -604,12 +695,14 @@ for (i in 1:6) {
   print(gg)
 }
 ```
+
 The warnings have been silenced but R warns that all the Chi-squared tests may be incorrect, likely because many of the expected values are less than 5.
 
 ```{r}
 chi <- chisq.test(bb2[,c(5,6)])
 chi$expected
 ```
+
 We are going to have to run these tests with permutations for 1000 repeats. 
 
 ```{r message=FALSE, warning=FALSE, paged.print=FALSE}
